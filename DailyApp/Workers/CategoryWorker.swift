@@ -28,6 +28,7 @@ class CategoryWorker: CRUD {
 
   var numberOfTasks: Int?
 
+  /// Creates a new category and saves to the CoreData
   func create() {
 
     let managedContext = appDelegate.persistentContainer.viewContext
@@ -45,9 +46,9 @@ class CategoryWorker: CRUD {
     } catch let error as NSError {
       print("Couldn't save. \(error), \(error.userInfo)")
     }
-
   }
 
+  /// Fetchs categories from CoreData
   func read() {
 
     let managedContext = appDelegate.persistentContainer.viewContext
@@ -59,13 +60,13 @@ class CategoryWorker: CRUD {
     } catch let error as NSError {
       print(error)
     }
-    
   }
 
   func update() {
 
   }
 
+  /// Deletes a category from CoreData
   func delete() {
 
     if let categoryToRemove = selectedCategory {

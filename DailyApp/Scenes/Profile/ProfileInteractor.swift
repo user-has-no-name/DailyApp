@@ -104,7 +104,7 @@ class ProfileInteractor: ProfileBusinessLogic, ProfileDataStore {
 
     fileManagerWorker = FileManagerWorker()
 
-    let imageName = fileManagerWorker?.fetchImage(fileName: request.fileName)
+    let imageName = fileManagerWorker?.fetchImagePath(fileName: request.fileName)
 
     if let imageName = imageName {
       let response = UserInfo.FetchUserPick.Response(imageName: imageName)

@@ -19,6 +19,7 @@ class TaskWorker: CategoryWorker {
 
   let userDefaults = UserDefaults.standard
 
+  /// Creates a task and saves it to CoreData
   func createTask(category: Category?) {
 
     let managedContext = appDelegate.persistentContainer.viewContext
@@ -34,14 +35,16 @@ class TaskWorker: CategoryWorker {
     do {
 
       try managedContext.save()
+
+      // Whenever a task is saved to CoreData it increments a number of all tasks by one in UserDefaults
       userDefaults.set(getInfoAboutAllTasks() + 1, forKey: "numberOfAllTasks")
 
     } catch let error as NSError {
       print("Couldn't save. \(error), \(error.userInfo)")
     }
-
   }
 
+  /// Deletes a task from CoreData
   func deleteTask() {
 
     if let selectedTask = selectedTask {
@@ -56,9 +59,9 @@ class TaskWorker: CategoryWorker {
         print(error)
       }
     }
-
   }
 
+  /// Fetchs tasks from CoreData
   func fetchTasks() {
 
     let managedContext = appDelegate.persistentContainer.viewContext
@@ -70,34 +73,35 @@ class TaskWorker: CategoryWorker {
     } catch let error as NSError {
       print(error)
     }
-
   }
 
+  /// "Completes a task" by deleting a task from CoreData
   func completeTask() {
 
+    // Gets number of all completed tasks and add 1 to that number
+    // Next - saves to UserDefaults
     userDefaults.set(getInfoAboutCompletedTasks() + 1, forKey: "numberOfCompletedTasks")
 
     deleteTask()
-
   }
 
+  /// Method that gets info about number of all tasks from UserDefaults
   func getInfoAboutAllTasks() -> Int {
 
     let numberOfTasks = userDefaults.integer(forKey: "numberOfAllTasks")
 
     return numberOfTasks
-
   }
 
+  /// Method that gets info about number of all completed tasks from UserDefaults
   func getInfoAboutCompletedTasks() -> Int {
-
 
     let numberOfTasks = userDefaults.integer(forKey: "numberOfCompletedTasks")
 
     return numberOfTasks
-
   }
 
+  /// Method that gets info about number of all active tasks from UserDefaults
   func getInfoAboutAllActiveTasks() -> Int {
 
     fetchTasks()
@@ -108,6 +112,8 @@ class TaskWorker: CategoryWorker {
     return 0
   }
 
+  /// Method that calculates rate of completed tasks
+  /// Returns a double ( completedTasks / allTasks)
   func calculatePercentage() -> Double {
 
     let completedTasks = Double(getInfoAboutCompletedTasks())

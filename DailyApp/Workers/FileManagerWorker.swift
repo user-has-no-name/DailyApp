@@ -10,18 +10,19 @@ import UIKit
 
 class FileManagerWorker {
 
+  /// Returns a directory path
   func getDirectoryPath() -> String {
     let paths = NSSearchPathForDirectoriesInDomains(.documentDirectory, .userDomainMask, true)
       let documentsDirectory = paths[0]
       return documentsDirectory
   }
 
-  func fetchImage(fileName: String) -> String {
+  /// Returns an image path using file name
+  func fetchImagePath(fileName: String) -> String {
 
     let imagePath = (self.getDirectoryPath() as NSString).appendingPathComponent(fileName)
 
     return imagePath
-
   }
 
   func saveImage(image: UIImage) {
@@ -42,8 +43,5 @@ class FileManagerWorker {
           print("error saving file:", error)
         }
       }
-
-
   }
-
 }

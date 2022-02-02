@@ -24,7 +24,45 @@ protocol CreateTaskDisplayLogic: AnyObject {
 class CreateTaskViewController: UITableViewController,
                                 CreateTaskDisplayLogic {
 
+  var interactor: CreateTaskBusinessLogic?
+
+  // MARK: Object lifecycle
+  
+  override init(nibName nibNameOrNil: String?, bundle nibBundleOrNil: Bundle?) {
+    super.init(nibName: nibNameOrNil, bundle: nibBundleOrNil)
+    setup()
+  }
+  
+  required init?(coder aDecoder: NSCoder) {
+    super.init(coder: aDecoder)
+    setup()
+  }
+  
+  // MARK: Setup
+
+  // Array with a prepared to display categories
+  var displayedCategories: [CreateTask.FetchCategories.ViewModel.DisplayedCategories] = []
+
+  // Array with no modified categories
+  // It needs for creating a new task
+  var categories: [Category] = []
+  
+  private func setup() {
+
+    let viewController = self
+    let interactor = CreateTaskInteractor()
+    let presenter = CreateTaskPresenter()
+    viewController.interactor = interactor
+    interactor.presenter = presenter
+    presenter.viewController = viewController
+
+  }
+  
+  // MARK: View lifecycle
+
   weak var delegate: CreateTaskVCDelegate?
+
+  // MARK: - IBOutlets
 
   @IBOutlet weak var textField: UITextField!
   @IBOutlet weak var reminder: UISwitch!
@@ -32,55 +70,62 @@ class CreateTaskViewController: UITableViewController,
   @IBOutlet weak var categoryPicker: UIPickerView!
   @IBOutlet weak var editButton: UIButton!
 
+  // Custom cancel button
   @IBAction func cancelButtonClicked(_ sender: UIButton) {
     _ = navigationController?.popViewController(animated: true)
   }
 
+  // Reminder Switch action
   @IBAction func setReminderClicked(_ sender: UISwitch) {
 
     if sender.isOn {
       UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .badge, .sound]) { success, error in
         if success {
-          //
+
         } else if let error = error {
           print(error)
         }
       }
     }
-
   }
 
+  // Add Category Button action
   @IBAction func addCategoryButton(_ sender: UIButton) {
 
     showAlert()
-
   }
-
 
 
   func configMenuForEditButton() {
 
+    // Edit button (doesnt work right now)
     let editCategory = UIAction(title: "Edit",
                                 image: UIImage(systemName: "square.and.pencil")) { (action) in
 
       // show alert with a text that should be edited
-
     }
 
+    // Delete button
     let deleteCategory = UIAction(title: "Delete",
                                   image: UIImage(systemName: "trash")) { (action) in
 
+      // Index of selected row in a category picker
       let indexOfSelectedCategory = self.categoryPicker.selectedRow(inComponent: 0)
 
       DispatchQueue.main.async {
+        // Shows alert with a warning before deleting a category
         self.showDeleteWarning(for: indexOfSelectedCategory)
       }
     }
 
+    // Creating a menu
     let menu = UIMenu(options: .displayInline,
                       children: [editCategory, deleteCategory])
 
+    // Shows menu as primary action
     editButton.showsMenuAsPrimaryAction = true
+
+    // Attach menu to the button
     editButton.menu = menu
 
   }
@@ -93,8 +138,14 @@ class CreateTaskViewController: UITableViewController,
 
         let deleteAction = UIAlertAction(title: "Delete", style: .destructive) { _ in
             DispatchQueue.main.async {
+
+              // Sends a request to delete a category using an index to identify
               self.deleteCategory(at: index)
+
+              // Fetch categories after deleting
               self.fetchCategories()
+
+              // Reloads components in a categoryPicker
               self.categoryPicker.reloadAllComponents()
             }
         }
@@ -113,154 +164,145 @@ class CreateTaskViewController: UITableViewController,
 
     if let title = textField.text {
 
-      notificationContent.title = "You have the task to do!"
+      // Creating a content for a notification
+      notificationContent.title = "You have a task to do!"
       notificationContent.sound = .default
       notificationContent.body = title
-
     }
 
+    // Date when a notification should appears
     let targetDate = datePicker.date
 
+    // Setting up a trigger
     let trigger = UNCalendarNotificationTrigger(dateMatching: Calendar.current.dateComponents([.year, .month, .day, .hour, .minute,
                                                                                                .second],
                                                                                               from: targetDate),
                                                 repeats: false)
 
-    let request = UNNotificationRequest(identifier: "some_long_id", content: notificationContent, trigger: trigger)
+    // Setting up a request with a content and a trigger
+    let request = UNNotificationRequest(identifier: "some_long_id",
+                                        content: notificationContent,
+                                        trigger: trigger)
 
+    // Adds request to the notification center
     UNUserNotificationCenter.current().add(request) { error in
       if let error = error {
         print(error)
+        // better to have an alert to show to a user with an error
       }
     }
 
   }
 
+  /// Action handler of saveTaskButton
   @IBAction func saveTaskButton(_ sender: Any) {
 
+    // Checks whether user set reminder
     if reminder.isOn {
+      // If so - sets reminder
       DispatchQueue.main.async {
         self.setReminder()
       }
     }
 
+    // Sends request with a collected data from UI components
     createTask()
 
+    // Reloads data in a rootViewController using delegate pattern
     delegate?.reloadData()
 
+    // Creating an alert with a message about successfuly added task
     let alert = UIAlertController(title: "", message: "Task successfuly added", preferredStyle: .alert)
+
+    // Present an alert
     self.present(alert, animated: true, completion: nil)
 
-    // change to desired number of seconds (in this case 5 seconds)
+    // Time for a pause
     let when = DispatchTime.now() + 1
 
     DispatchQueue.main.asyncAfter(deadline: when) {
-      // your code with delay
+      // Alert dismisses after 1 second
       alert.dismiss(animated: true, completion: nil)
+
+      // Gets back to the prev viewController
       _ = self.navigationController?.popViewController(animated: true)
     }
 
-
   }
 
+  /// Method that shows alert for creating new category
   func showAlert() {
 
+    // Creating an alert controller
     let alert = UIAlertController(title: "Add a category",
                                   message: nil,
                                   preferredStyle: .alert)
 
+    // TextField for category title
     alert.addTextField { textField in
       textField.placeholder = "Category Title"
     }
 
+    // TextField for category emoji
     alert.addTextField { textField in
       textField.placeholder = "Emoji for category"
     }
 
+    // Add button
     let submitButton = UIAlertAction(title: "Add",
                                      style: .default) { (action) in
 
       let titleLabel = alert.textFields![0]
       let categoryEmoji = alert.textFields![1]
 
-      let newCategory = CreateTask.CategoryFormFields(title: titleLabel.text ?? "New category",
-                                                      label: categoryEmoji.text ?? "")
+      // Sends data collected from the alert to the interactor
+      self.createCategory(title: titleLabel.text ?? "",
+                          label: categoryEmoji.text ?? "")
 
-      let request = CreateTask.CreateCategory.Request(categoryFromFields: newCategory)
-
-      self.createCategory(request: request)
+      // Fetches categories after creating a new one
       self.fetchCategories()
+
+      // Reloads components in a categoryPicker
       self.categoryPicker.reloadAllComponents()
 
     }
 
+    // Cancel button to close alert
     let cancelButton = UIAlertAction(title: "Cancel",
                                      style: .cancel,
                                      handler: nil)
-
-
+    // Adding buttons to the alert
     alert.addAction(submitButton)
     alert.addAction(cancelButton)
 
+    // Shows alert
     self.present(alert, animated: true, completion: nil)
 
   }
-
-  var interactor: CreateTaskBusinessLogic?
-
-  // MARK: Object lifecycle
-  
-  override init(nibName nibNameOrNil: String?, bundle nibBundleOrNil: Bundle?) {
-    super.init(nibName: nibNameOrNil, bundle: nibBundleOrNil)
-    setup()
-  }
-  
-  required init?(coder aDecoder: NSCoder) {
-    super.init(coder: aDecoder)
-    setup()
-  }
-  
-  // MARK: Setup
-
-  var displayedCategories: [CreateTask.FetchCategories.ViewModel.DisplayedCategories] = []
-  var categories: [Category] = []
-  
-  private func setup() {
-    let viewController = self
-    let interactor = CreateTaskInteractor()
-    let presenter = CreateTaskPresenter()
-    viewController.interactor = interactor
-    interactor.presenter = presenter
-    presenter.viewController = viewController
-  }
-  
-  // MARK: View lifecycle
   
   override func viewDidLoad() {
 
     super.viewDidLoad()
+
+    // Fetching categories
     fetchCategories()
+
+    // Config picker
     categoryPicker.delegate = self
     categoryPicker.dataSource = self
 
-    configMenuForEditButton()
-    configUI()
+    // Config textField
+    textField.delegate = self
+    textField.returnKeyType = .done
 
+    // Configuration context menu on edit button
+    configMenuForEditButton()
+
+    // Hide back button from navigationBar
     self.navigationItem.setHidesBackButton(true, animated: true)
   }
 
-    func configUI() {
-
-      categoryPicker.dataSource = self
-      categoryPicker.delegate = self
-
-      textField.delegate = self
-      textField.returnKeyType = .done
-
-    }
-  
-  // MARK: Do something
-
+  /// Method that collects data from UI components and sends to the interactor
   func createTask() {
 
     let title = textField.text
@@ -268,28 +310,29 @@ class CreateTaskViewController: UITableViewController,
     let indexOfSelectedCategory = categoryPicker.selectedRow(inComponent: 0)
     let category = categories[indexOfSelectedCategory]
 
+    // Info that is needed to create a task
     let task = CreateTask.TaskFormFields(title: title ?? "New Task",
                                          category: category,
                                          date: date)
 
+    // Request to create a task
     let request = CreateTask.CreateTask.Request(taskFormFields: task)
 
     interactor?.createTask(request: request)
-
   }
 
-  func createCategory(request: CreateTask.CreateCategory.Request) {
+  /// Method that sends collected data with categories to the interactor
+  func createCategory(title: String, label: String) {
+
+    let newCategory = CreateTask.CategoryFormFields(title: title,
+                                                    label: label)
+
+    let request = CreateTask.CreateCategory.Request(categoryFromFields: newCategory)
 
     interactor?.createCategory(request: request)
-
   }
 
-  func fetchCategories() {
-    let request = CreateTask.FetchCategories.Request()
-
-    interactor?.fetchCategories(request: request)
-  }
-
+  /// Sends selected category that is about to delete
   func deleteCategory(at index: Int) {
 
     let request = CreateTask.DeleteCategory.Request(categoryToDelete: categories[index])
@@ -297,15 +340,28 @@ class CreateTaskViewController: UITableViewController,
     interactor?.deleteCategory(request: request)
   }
 
+  /// Sends fetch request to the interactor to get categories
+  func fetchCategories() {
+
+    let request = CreateTask.FetchCategories.Request()
+
+    interactor?.fetchCategories(request: request)
+  }
+
+  /// This method is called from CreateTaskPresenter
+  /// Sends fetched and transformed categories to the array which will be used by UI
   func displayCategories(viewModel: CreateTask.FetchCategories.ViewModel) {
 
     displayedCategories = viewModel.displayedCategories
     categories = viewModel.categories
 
+    // Reloads picker
     categoryPicker.reloadAllComponents()
   }
 }
 
+
+// MARK: - UIPickerView Methods
 
 extension CreateTaskViewController: UIPickerViewDelegate,
                                     UIPickerViewDataSource {
@@ -330,6 +386,8 @@ extension CreateTaskViewController: UIPickerViewDelegate,
   }
 
 }
+
+// MARK: - UITextFieldDelegate Methods
 
 extension CreateTaskViewController: UITextFieldDelegate {
 

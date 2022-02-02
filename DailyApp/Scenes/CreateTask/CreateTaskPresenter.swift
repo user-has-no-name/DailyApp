@@ -21,14 +21,12 @@ protocol CreateTaskPresentationLogic {
 class CreateTaskPresenter: CreateTaskPresentationLogic {
 
   weak var viewController: CreateTaskDisplayLogic?
-  
-  // MARK: Do something
+
 
   func presentCategories(response: CreateTask.FetchCategories.Response) {
 
-
+    // An array which will contain modified categories
     var categories: [CreateTask.FetchCategories.ViewModel.DisplayedCategories] = []
-
 
     for category in response.categories {
 
@@ -38,6 +36,7 @@ class CreateTaskPresenter: CreateTaskPresentationLogic {
          let title = category.title,
          let label = category.label {
 
+        // Connects label and title, so the view controller will only show this info, not modify
         let newTitle = label + title
         let newCategory = CreateTask.FetchCategories.ViewModel.DisplayedCategories(title: newTitle, tasks: tasks)
 
@@ -47,6 +46,7 @@ class CreateTaskPresenter: CreateTaskPresentationLogic {
 
     let viewModel = CreateTask.FetchCategories.ViewModel(displayedCategories: categories, categories: response.categories)
 
+    // Sends a viewModel with categories to the view controller
     viewController?.displayCategories(viewModel: viewModel)
 
   }

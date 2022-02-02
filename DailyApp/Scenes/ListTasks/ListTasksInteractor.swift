@@ -29,14 +29,13 @@ protocol ListTasksDataStore {
 
 class ListTasksInteractor: ListTasksBusinessLogic, ListTasksDataStore {
   
-  
   var presenter: ListTasksPresentationLogic?
   var categoryWorker: CategoryWorker?
   var taskWorker: TaskWorker?
   var userDefaultsWorker: UserDefaultsWorker?
-  // MARK: Do something
-  
+
   func fetchCategories(request: ListTasks.FetchTasks.Request) {
+
     categoryWorker = CategoryWorker()
     categoryWorker?.read()
     
@@ -48,7 +47,8 @@ class ListTasksInteractor: ListTasksBusinessLogic, ListTasksDataStore {
       presenter?.presentFetchedTasks(response: response)
     }
   }
-  
+
+  /// Fetchs a username from UserDefaults using request
   func fetchUsername(request: UserInfo.FetchUsername.Request) {
     
     userDefaultsWorker = UserDefaultsWorker()
@@ -56,10 +56,12 @@ class ListTasksInteractor: ListTasksBusinessLogic, ListTasksDataStore {
     let username = userDefaultsWorker?.fetchUsername(using: request.userDefaultsKey)
     
     let response = UserInfo.FetchUsername.Response(username: username ?? "User")
-    
+
+    // Sends a response with a username to the presenter
     presenter?.presentUserName(response: response)
   }
-  
+
+  /// Method that callculates period of day and sends this info to the presenter
   func greetUser(request: ListTasks.GreetUser.Request) {
     
     let now = request.timeNow
@@ -92,14 +94,16 @@ class ListTasksInteractor: ListTasksBusinessLogic, ListTasksDataStore {
     
     presenter?.presentGreetings(response: response)
   }
-  
+
+  /// Completes a task 
   func completeTask(request: ListTasks.CompleteTask.Request) {
     
     taskWorker = TaskWorker()
     taskWorker?.selectedTask = request.selectedTask
     taskWorker?.completeTask()
   }
-  
+
+  /// Deletes a task
   func deleteTask(request: ListTasks.DeleteTask.Request) {
     
     taskWorker = TaskWorker()

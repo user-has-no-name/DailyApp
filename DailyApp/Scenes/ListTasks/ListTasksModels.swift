@@ -12,12 +12,7 @@
 
 import UIKit
 
-
-
-
-
 enum ListTasks {
-  // MARK: Use cases
   
   enum FetchTasks {
 

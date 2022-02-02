@@ -33,8 +33,10 @@ class CreateTaskInteractor: CreateTaskBusinessLogic,
   var categoryWorker: CategoryWorker = CategoryWorker()
   var taskWorker: TaskWorker = TaskWorker()
   
-  // MARK: Do something
-  
+
+  /// Fetchs data of a task from request
+  /// Sends that info to the worker which will create a task and save it to the CoreData
+  /// This method doesn't communicate with a presenter
   func createTask(request: CreateTask.CreateTask.Request) {
 
     let category = request.taskFormFields.category
@@ -46,6 +48,9 @@ class CreateTaskInteractor: CreateTaskBusinessLogic,
 
   }
 
+  /// Fetchs data of a category from request
+  /// Sends that info to the worker which will create a category and save it to the CoreData
+  /// This method doesn't communicate with a presenter
   func createCategory(request: CreateTask.CreateCategory.Request) {
 
     categoryWorker.categoryEmoji = request.categoryFromFields.label
@@ -54,6 +59,8 @@ class CreateTaskInteractor: CreateTaskBusinessLogic,
     categoryWorker.create()
   }
 
+  /// Fetch categories from CoreData using a CategoryWorker
+  /// Creates a response using fetched data and sends it to the presenter
   func fetchCategories(request: CreateTask.FetchCategories.Request) {
 
     categoryWorker.read()
@@ -65,6 +72,7 @@ class CreateTaskInteractor: CreateTaskBusinessLogic,
 
   }
 
+  /// Deletes a category from a request 
   func deleteCategory(request: CreateTask.DeleteCategory.Request) {
 
     categoryWorker.selectedCategory = request.categoryToDelete

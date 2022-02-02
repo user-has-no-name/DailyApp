@@ -22,8 +22,6 @@ class ListTasksPresenter: ListTasksPresentationLogic {
 
   weak var viewController: ListTasksDisplayLogic?
   
-  // MARK: Do something
-  
   func presentFetchedTasks(response: ListTasks.FetchTasks.Response) {
 
     var displayedCategories: [ListTasks.FetchTasks.ViewModel.DisplayedCategories] = []
@@ -51,7 +49,6 @@ class ListTasksPresenter: ListTasksPresentationLogic {
     let viewModel = UserInfo.FetchUsername.ViewModel(username: response.username)
 
     viewController?.displayUsername(viewModel: viewModel)
-
   }
 
   func presentGreetings(response: ListTasks.GreetUser.Response) {
@@ -77,7 +74,5 @@ class ListTasksPresenter: ListTasksPresentationLogic {
     let viewModel = ListTasks.GreetUser.ViewModel.init(greetings: greetings, activityImage: activityImage)
 
     viewController?.displayGreetings(viewModel: viewModel)
-
   }
-
 }

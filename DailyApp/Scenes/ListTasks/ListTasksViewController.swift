@@ -46,6 +46,7 @@ class ListTasksViewController: UITableViewController, ListTasksDisplayLogic {
     presenter.viewController = viewController
   }
 
+  // MARK: ROUTING USING SEGUES
   override func prepare(for segue: UIStoryboardSegue,
                         sender: Any?) {
 
@@ -90,35 +91,39 @@ class ListTasksViewController: UITableViewController, ListTasksDisplayLogic {
     tableView.rowHeight = 75
   }
 
+  /// Sends request to the interactor to fetch tasks
   func fetchTasks() {
 
     let request = ListTasks.FetchTasks.Request()
     interactor?.fetchCategories(request: request)
-
   }
 
+  /// Method that returns an array with categories, that contain all tasks
   func displayFetchedTasks(viewModel: ListTasks.FetchTasks.ViewModel) {
 
     categories = viewModel.categories
+
+    // after categories array is returned - reloads a tableView
     tableView.reloadData()
   }
 
+  /// Method that sends request with a current time to prepare a greetings for the user
   func greetUser() {
 
     let now = Date()
     let request = ListTasks.GreetUser.Request(timeNow: now)
 
     interactor?.greetUser(request: request)
-
   }
 
+  /// Method that returns a viewModel with a greetings to the UI elements
   func displayGreetings(viewModel: ListTasks.GreetUser.ViewModel) {
 
     periodOfDayLabel.text = viewModel.greetings
     activityImage.image = UIImage(named: viewModel.activityImage)
-
   }
 
+  /// Sends request to the interactor to fetch a username from UserDefaults
   func fetchUsername() {
 
     let request = UserInfo.FetchUsername.Request(userDefaultsKey: "username")
@@ -126,12 +131,13 @@ class ListTasksViewController: UITableViewController, ListTasksDisplayLogic {
     interactor?.fetchUsername(request: request)
   }
 
+  /// Method that return a viewModel from presenter with a fetched username from UserDefaults
   func displayUsername(viewModel: UserInfo.FetchUsername.ViewModel) {
 
     usernameLabel.text = viewModel.username
-
   }
 
+  /// Method that sends a request to complete a task with a selected task and index
   func completeTask(selectedTask: Task,
                     at indexPath: IndexPath) {
 
@@ -141,8 +147,10 @@ class ListTasksViewController: UITableViewController, ListTasksDisplayLogic {
   }
 }
 
+// MARK: - Methods from custom delegates
 extension ListTasksViewController: CreateTaskVCDelegate, SettingsVCDelegate {
 
+  /// Reload tasks and fullfill a tableView with a new data
   func reloadData() {
 
     fetchTasks()
@@ -150,6 +158,7 @@ extension ListTasksViewController: CreateTaskVCDelegate, SettingsVCDelegate {
 
   }
 
+  /// Reloads username after it is changed
   func reloadUsername() {
 
     fetchUsername()

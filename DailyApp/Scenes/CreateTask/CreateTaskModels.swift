@@ -12,6 +12,9 @@
 
 import UIKit
 
+
+/// CreateTask enum contains all use cases for those models
+/// which are used in a CreateTask VIP cycle
 enum CreateTask {
 
   struct TaskFormFields {
@@ -29,6 +32,7 @@ enum CreateTask {
 
   }
 
+  // DeleteCategory use case
   enum DeleteCategory {
 
     struct Request {
@@ -44,7 +48,8 @@ enum CreateTask {
     }
 
   }
-  
+
+  // CreateTask use case
   enum CreateTask {
 
     struct Request {
@@ -60,6 +65,7 @@ enum CreateTask {
     }
   }
 
+  // CreateCategory use case
   enum CreateCategory {
 
     struct Request {
@@ -76,6 +82,7 @@ enum CreateTask {
 
   }
 
+  // FetchCategories use case
   enum FetchCategories {
 
     struct Request {
