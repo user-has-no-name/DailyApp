@@ -44,10 +44,6 @@ class ProfileViewController: UIViewController, ProfileDisplayLogic {
     setup()
   }
 
-  deinit {
-    print("There we go again")
-  }
-  
   // MARK: Setup
   
   private func setup() {
